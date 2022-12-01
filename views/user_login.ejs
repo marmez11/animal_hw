@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <body>
+    <%- include("../partials/header.ejs") %>
+    <main>
+      <div>
+        <form action="/user/login" method="post">
+          <fieldset>
+            <legend>New Animal App User Login</legend>
+            <label
+              >USERNAME: <input class="login_userName_input" type="text" name="username" required />
+            </label>
+            <label
+              >PASSWORD: <input class="login_password_input" type="password" name="password" required />
+            </label>
+            <input type="submit" value="Login" />
+          </fieldset>
+        </form>
+      </div>
+    </main>
+  </body>
+</html>

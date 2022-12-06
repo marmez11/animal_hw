@@ -1,16 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-  <%- include("./partials/head.ejs") %>
-
+  <%- include("../partials/head1.ejs") %>
+  <title>Animal Info</title>
+  <style>
+    * {
+  box-sizing: border-box;
+}
+    body{
+          background-color: gold}
+    .animal_info{
+      border-radius: 30px;
+     color:white;
+     background-color: red;
+     -moz-box-shadow: 1px 2px 3px rgba(0,0,0,.5);
+ -webkit-box-shadow: 1px 2px 3px rgba(0,0,0,.5);
+ box-shadow: 1px 2px 3px rgba(0,0,0,.5);
+    }
+    h1{
+      text-align: center;
+    }
+        p{ font-family:Garamond; } 
+        body > p{ font-weight:bold; } 
+        div > p{ color:#7ac5cd; } 
+        li p{ text-decoration:underline; color:#000000; }
+  </style>
   <body>
     <main>
-      <div hx-boost>
-        <%- include("./partials/header.ejs") %>
-        <h2>Welcome to the Animal Creator Application</h2>
-        <p>Please select one of the two options to begin the application</p>
-        <a href="/register"><button>User Registration</button></a>
-        <a href="/login"><button>Login</button></a>
+      <h1><b><u>Animal Info: </u></b></h1>
+      <div class="animal_info" hx-boost>
+        <article>
+        <% for (let i = 0; i < animals.length; i++) { %>
+            <p id="species_name_extinct"><b><u>Animal Species: </u></b><b><em><a href="/animal/<%=i%>"><%= animals[i].species %></a>%></em></b></p>
+          <% } %>
+        </article>
       </div>
     </main>
+    <a href="/animal/new"><button>Create A New Animal</button></a>
   </body>
 </html>

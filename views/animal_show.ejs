@@ -1,27 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-  <%- include("../partials/head.ejs") %>
-
+  <%- include("../partials/head1.ejs") %>
+  <title>Animal Info Show</title>
+  <style>
+    body{
+          background-color: gold}
+    .animal_species_header h1 {
+     border-radius: 30px;
+     color:white;
+     background-color: red;
+     -moz-box-shadow: 1px 2px 3px rgba(0,0,0,.5);
+ -webkit-box-shadow: 1px 2px 3px rgba(0,0,0,.5);
+ box-shadow: 1px 2px 3px rgba(0,0,0,.5);
+ }
+    .animal_species_background {
+        display: grid;
+        justify-content: center;
+    border-radius: 30px;
+    background-color: red;
+    -moz-box-shadow: 1px 2px 3px rgba(0,0,0,.5);
+-webkit-box-shadow: 1px 2px 3px rgba(0,0,0,.5);
+box-shadow: 1px 2px 3px rgba(0,0,0,.5);
+}
+ </style>
   <body>
-    <%- include("../partials/header.ejs") %>
-    <main>
-      <div>
-        <article>
-          <h2>
-            <%= animal.species %> - <%= animal.extinct? "Extinct" : "Alive" %>
-          </h2>
-          <h3><%= animal.location %></h3>
-          <h3><%= animal.lifeExpectancy%></h3>
-          <a href="/animals/<%= animal._id %>/edit"><button>Edit</button></a>
-          <form
-            action="/animals/<%= animal._id %>?_method=DELETE"
-            method="POST"
-          >
-            <input type="submit" value="Delete" />
-          </form>
-          <a href="/animals/"><button>Back to Main</button></a>
-        </article>
-      </div>
-    </main>
+    <div class="animal_species_header"><h1>Animal Species - <%=animal.species %></h1></div>
+    <div class="animal_species_background">
+        <main class="animal_info_1">
+            <p><b>Animal Species Name</b>: <u><em><%=animal.species %></em></u></p>
+            <p><b>Animal Species Extinct Status</b>: <u><em><%=animal.extinct? "Extinct" : "Alive" %></em></u></p>
+            <p><b>Animal Species Location</b>: <u><em><%=animal.location %></em></u></p>
+            <p><b>Animal Species lifeExpectancy</b>: <u><em><%=animal.lifeExpectancy %> Years</em></u></p>
+        </main>
+        <a href="/animal/<%= id %>/edit">
+                <button class="Edit">Edit</button>
+               </a>
+        <form action="/animal/<%=id %>?_method=DELETE" method="POST">
+                <input class="delete_animal" type="submit" value="Delete" />
+                </form>
+    </div>
+  </div>
+  <button class="return_to_animal_btn"><a href="/animal">Return to Animal Home Page</a></button>
   </body>
 </html>

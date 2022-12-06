@@ -1,46 +1,47 @@
 /// creating dependencies and libraries
 const express = require("express");
-const method_Override = require("method-override")
-const morgan = require("morgan")
 const bcrypt = require("bcryptjs");
 /// connecting to the Database Model Schema extracted from the Mongoose Database
-const Animal = require("../models/animals");
-const User = require("../models/users");
+const Animal = require("../models/animals.js");
+// const User = require("../models/users.js");
 const { request } = require("http");
 const { response } = require("express");
 
-
-// creating the router to create routes into the local server
-const router = express.Router()
-
-// create Router middleware
-router.use(morgan("tiny"))
-router.use(method_Override("_method"))
-router.use(express.urlencoded({extended: true}));
-router.use(express.static("public"));
-
-router.use((req, res, next) => {
-    if (req.session.loggedIn) {
-      next();
-    } else {
-      res.redirect("/login");
-    }
-  });
+// creating Mongoose Database and establishing connections without errors
+const mongoose = require("mongoose");
+const DB_URL = "mongodb+srv://mrz11:Qwerasdf11!!@sei.qcrf0tv.mongodb.net/?retryWrites=true&w=majority"
+const configuration = {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  }
+mongoose.connection.on("open", ()=> {console.log("Connection has been established")})
+  .on("close", ()=>{console.log("Connection has been disconnected/destroyed")})
+  .on("error", (error)=>{console.log(`There has been an error that has occurred which is ${error}`)})
+  
+// creating router 
+const router = express.Router();
 
 ///////////////////////////////
 /// Animal User Display Routes
 ///////////////////////////////
 
+// connect to Mongo Database
+mongoose.connect(DB_URL, configuration)
 
+// home route, checking if server is running
+router.get("/", (request, response) => {
+    response.send("Your server is running...")
+})
 
 // create Seed Route and Seed File
-router.get("/seed_db_file", (request, response)=>{
+router.get("/seeding_db_file", (request, response)=>{
     const animals_Data = [{ species: "human", extinct: false, location: "worldwide", lifeExpectancy: 75 },
                     { species: "sabre tooth tiger", extinct: true, location: "Russia", lifeExpectancy: 25 },
                     { species: "giant squid", extinct: false, location: "atlantic & pacific ocean", lifeExpectancy: 15 },
                     { species: "lion", extinct: false, location: "Africa (all regions)", lifeExpectancy: 36 },
                     { species: "t-rex", extinct: true, location: "South America", lifeExpectancy: 40 },
-                ]
+                    { species: "cat", location: "egypt", extinct: false, lifeExpectancy: 10 },
+    { species: "dog", location: "siberia", extinct: false, lifeExpectancy: 11 }]
     
     // deleting of data within the mongoose model database with the imported schema/model and reseeding data into Seed file
     Animal.deleteMany({}, (error, ani_data)=>{
@@ -52,68 +53,58 @@ router.get("/seed_db_file", (request, response)=>{
     })
 })
 
-// home/index route
-router.get("/", (request, response) => {
-    Animal.find({username: request.session.username}, (error, animal)=>{
-        response.render("index.ejs", {animal})
-    })
-})
-
-// registering users routes
-router.get("/register", (request, response)=>{
-    response.render("user_register.ejs")
-})
-
-// register new users to account
-router.post('/register', async (request, response)=>{
-    // encrypted password
-    request.body.password = await bcrypt.hash(request.body.password, await bcrypt.genSalt(10))
-    // create new users
-    User.create(request.body, (error, usr)=>{
-        // redirect to the login page
-        response.redirect("/login")
-    })
-})
-
-// The login Routes
-router.get("/login", (request, response) => {
-    res.render("user_login.ejs", {User});
-  });
-// logging in within the login page
-router.post("/login", (request, response) => {
-    const{username, password} = request.body
-    // checking if username exists
-    User.findOne({username}, async (error, usr) =>{
-        if(error){
-            response.send("Username does not exist")
-        }
-        // cross comparing passwords 
-        const psswrd_compare = await bcrypt.compare(password, usr.password)
-        if(!psswrd_compare){
-            response.send("wrong password")
-        }
-        // saving login info within sessions
-        request.session.loggedIn = true
-        request.session.username = username
-
-        // redirect to homepage
-        response.redirect("/animals")
-    })
-})
-
-router.post("/logout", (request, response) => {
-    request.session.destroy((error) => {
-        response.redirect("/")
-    })
-})
-
-// home route
-router.get("/animal", async(request, response) => {
+// data display route
+router.get("/animal_data", async(request, response) => {
     const animal = await Animal.find({})
-    response.render("index.ejs", {animal})
+    response.send({animal})
 })
 
-// deleting route
+// indexing route
+router.get("/animal", async(request, response) => {
+    const animals = await Animal.find({})
+    response.render("index.ejs", {animals})
+})
+
+// new route
+router.get("/animal/new", (request, response) => {
+    response.render("animal_new.ejs")
+  });
+
+// show route (R: Read)
+router.get("/animal/:id", async(request, response) => {
+    // get the id from params
+    const id = request.params.id;
+    // animal data
+    const animal_show = await Animal.find({})
+      // render the template with the data from the database
+      response.render("animal_show.ejs", { animal: animal_show[id], id: request.params.id });
+  })
+
+// edit route (U: Update)
+router.get("/animal/:id/edit", async(request, response) =>{
+    // get the id from params
+    const id = request.params.id;
+    // animal data
+    const animal_edit = await Animal.find({})
+      // render the template with the data from the database
+      response.render("animal_edit.ejs", { animal: animal_edit[id], id:request.params.id });
+  })
+
+// create route (C: Create)
+router.post("/animal", async(request, response) => {
+    // check if the Extinct property is true or false
+    request.body.extinct = request.body.extinct === "on" ? true : false;
+    // animal data
+    const animal_create = await Animal.find({})
+    // create the new animal
+    Animal.create(request.body, (err, animal) => {
+      // redirect the user back to the main animals page after animal is created
+      console.log(request.body)
+      response.redirect("/animal");
+    });
+  });
+
+// deleting route (D: Delete)
 router.delete("/animal/:id", (request, response)=> {
     const id = request.params.id
     // delete animal
@@ -122,46 +113,20 @@ router.delete("/animal/:id", (request, response)=> {
     })
 })
 
-// update route
-router.put("/animal/:id", (request, response) => {
-    const id = request.params.id
-    // checking if extinct property is true or not
-    request.body.extinct = request.body.extinct === "on" ? true : false;
+//update route
+router.put("/animals/:id", (req, res) => {
+    // get the id from params
+    const id = req.params.id;
+    // check if the extinct property should be true or false
+    req.body.extinct = req.body.extinct === "on" ? true : false;
     // update the animal
-    Animal.findByIdAndUpdate(id, request.body, { new: true }, (err, animal) => {
-    // redirect user back to main page
-    console.log("update animal:", animal);
-    response.redirect("/animal");
-})})
-
-// create route
-router.post("/animal", (request, response) => {
-    // check if the Extinct property is true or false
-    request.body.extinct = request.body.extinct === "on" ? true : false;
-    // create the new animal
-    Animal.create(request.body, (err, animal) => {
-      // redirect the user back to the main animals page after animal is created
-      res.redirect("/animal");
+    Animal.findByIdAndUpdate(id, req.body, { new: true }, (err, animal) => {
+      // redirect user back to main page
+      console.log("update animal:", animal);
+      res.redirect("/animals");
     });
   });
 
-// edit route
-router.get("/animal/:id/edit", (request, response) =>{
-    const id = request.params.id
-    // get the animal by the id within the Mongo database
-    Animal.findById(id, (error, animal) => {
-        // render the data from the Animal Mongo database and send it to the edit.ejs template
-        response.render("animal_edit.ejs", {animal})
-    })
-})
 
-// show route
-router.get("/animals/:id", (request, response) => {
-    // get the id from params
-    const id = req.params.id;
-    // find the particular animal from the database
-    Animal.findById(id, (err, animal) => {
-      // render the template with the data from the database
-      res.render("animal_show.ejs", { animal });
-    });
-  })
+
+module.exports = router
